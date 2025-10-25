@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Groups Hub{% endblock %}
+
+{% block content %}
+<div class="container text-center mb-5">
+    <h1 class="display-4 fw-bold">Groups Portal</h1>
+    <p class="lead text-white-50">Join a team or create your own to tackle targets together!</p>
+</div>
+
+<!-- User's Current Group -->
+<div class="row justify-content-center mb-5">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h3 class="mb-3">Your Status</h3>
+            {% if current_user.group %}
+                <p class="lead">You are a member of:</p>
+                <h2 class="fw-bold">{{ current_user.group.name }}</h2>
+                <div class="d-flex justify-content-center gap-2 mt-3">
+                    <a href="{{ url_for('group_page', group_id=current_user.group.id) }}" class="btn btn-primary">Go to Group Page</a>
+                    <a href="{{ url_for('leave_group') }}" class="btn btn-outline-danger">Leave Group</a>
+                </div>
+            {% else %}
+                <p class="lead">You are not currently in a group.</p>
+                <h4 class="mt-4">Create a New Group</h4>
+                <form method="POST" action="{{ url_for('create_group') }}" class="input-group mt-2">
+                    <input type="text" name="group_name" class="form-control" placeholder="Enter new group name..." required>
+                    <button class="btn btn-primary" type="submit">Create</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- List of All Public Groups -->
+<div class="row">
+    <div class="col-12">
+        <h2 class="text-center mb-4">Join an Existing Group</h2>
+        {% if groups %}
+            <div class="list-group">
+                {% for group in groups %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-secondary text-white mb-2">
+                        <div>
+                            <h5 class="mb-1 fw-bold">{{ group.name }}</h5>
+                            <small>{{ group.members|length }} Member(s)</small>
+                        </div>
+                        {% if not current_user.group %}
+                            <a href="{{ url_for('join_group', group_id=group.id) }}" class="btn btn-outline-light">Join</a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-white-50">No public groups exist yet. Why not create the first one?</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

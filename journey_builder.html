@@ -1,0 +1,26 @@
+    {% extends "base.html" %}
+    {% block title %}AI Journey Builder{% endblock %}
+    
+    {% block content %}
+    <div class="text-center">
+        <h1 class="display-4 fw-bold">AI Journey Builder</h1>
+        <p class="lead text-white-50">Tell our AI your high-level goal, and it will create a personalized, step-by-step plan for you.</p>
+    </div>
+
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8">
+            <div class="card p-4">
+                <form method="POST" action="{{ url_for('create_journey') }}">
+                    <div class="mb-3">
+                        <label for="goal" class="form-label fs-5">What is your goal?</label>
+                        <textarea class="form-control" id="goal" name="goal" rows="4" placeholder="e.g., I want to run a 5k in 3 months, or I want to learn to code in Python..."></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Generate My Journey</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+    

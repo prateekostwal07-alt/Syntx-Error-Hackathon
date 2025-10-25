@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h1 class="display-5 fw-bold mb-0">Welcome, {{ current_user.username }}!</h1>
+    <a href="{{ url_for('journey_builder') }}" class="btn btn-primary btn-lg">✨ Create New AI Journey</a>
+</div>
+
+<!-- User Stats -->
+<div class="row g-4 mb-5">
+    <!-- Rank Card -->
+    <div class="col-lg-6">
+        <div class="card p-3 h-100">
+            <div class="card-body">
+                <h5 class="card-title text-white-50">Your Rank</h5>
+                <p class="display-4">{{ current_rank.badge }} {{ current_rank.name }}</p>
+                {% if next_rank %}
+                    <p class="mb-1 text-white-50">{{ next_rank.points - current_user.points }} points to {{ next_rank.name }}</p>
+                    <div class="progress" style="height: 20px;" role="progressbar" aria-label="Rank progress" aria-valuenow="{{ current_user.points }}" aria-valuemin="{{ current_rank.points }}" aria-valuemax="{{ next_rank.points }}">
+                        {% set progress_percent = ((current_user.points - current_rank.points) / (next_rank.points - current_rank.points) * 100) if (next_rank.points - current_rank.points) > 0 else 0 %}
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {{ progress_percent }}%;">{{ current_user.points }} / {{ next_rank.points }}</div>
+                    </div>
+                {% else %}
+                    <p class="text-white-50">You have reached the highest rank!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- Streak Card -->
+    <div class="col-lg-6">
+        <div class="card p-3 h-100">
+            <div class="card-body">
+                <h5 class="card-title text-white-50">Daily Streak</h5>
+                <p class="display-4">🔥 {{ current_user.streak }} Day{% if current_user.streak != 1 %}s{% endif %}</p>
+                <p class="mb-0 text-white-50">Keep the fire going!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Journey Display -->
+{% if journey %}
+<div class="card p-4 mb-5">
+    <h2 class="mb-1">{{ journey.title }}</h2>
+    <p class="text-white-50">Your AI-powered plan to achieve: "{{ journey.original_goal }}"</p>
+    <hr class="my-4">
+    {% for milestone in journey.milestones %}
+        <div class="mb-4">
+            <h4 class="fw-bold">Week {{ milestone.week }}: <span class="fw-normal">{{ milestone.goal }}</span></h4>
+            <ul class="list-group">
+                {% for task in milestone.daily_tasks %}
+                <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent border-secondary text-white">
+                    <span class="{{ 'text-decoration-line-through text-white-50' if task.completed else '' }}">
+                        {{ task.task }}
+                    </span>
+                    
+                    <!-- Conditional Button Logic -->
+                    {% if task.target and task.target.verification_required %}
+                        {% if task.completed %}
+                             <span class="badge bg-success rounded-pill">Verified ✅</span>
+                        {% else %}
+                             <a href="{{ url_for('verify_target_page', target_id=task.target.id) }}" class="btn btn-sm btn-outline-info">Verify with AI 📸</a>
+                        {% endif %}
+                    {% else %}
+                        <!-- This is the original complete button -->
+                        <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="POST" class="mb-0">
+                            <button type="submit" class="btn btn-sm {{ 'btn-success' if task.completed else 'btn-outline-success' }}">
+                                {{ 'Completed ✅' if task.completed else 'Complete' }}
+                            </button>
+                        </form>
+                    {% endif %}
+                    <!-- End of Logic -->
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center card p-5 my-5">
+    <h2>You don't have an active journey.</h2>
+    <p class="lead text-white-50">Use the AI Journey Builder to create a personalized plan and start achieving your goals today!</p>
+    <div class="mt-3">
+        <a href="{{ url_for('journey_builder') }}" class="btn btn-primary btn-lg">Create My First Journey</a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+
+
+
+

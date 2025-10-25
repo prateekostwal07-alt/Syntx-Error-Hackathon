@@ -1,0 +1,26 @@
+    {% extends "base.html" %}
+    {% block title %}Verify Target{% endblock %}
+
+    {% block content %}
+    <div class="text-center">
+        <h1 class="display-4 fw-bold">Verify Task Completion</h1>
+        <p class="lead text-white-50">Upload a photo to prove you completed the task: <strong>"{{ target.title }}"</strong></p>
+    </div>
+
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card p-4">
+                <form method="POST" action="{{ url_for('upload_verification', target_id=target.id) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select Image</label>
+                        <input class="form-control" type="file" id="file" name="file" accept="image/png, image/jpeg" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Upload and Verify with AI</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+    

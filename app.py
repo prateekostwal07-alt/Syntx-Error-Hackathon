@@ -1,89 +1,4 @@
-Taskify AI is a modern, gamified productivity web application designed to help users achieve their goals through structured, AI-generated plans. It transforms high-level ambitions into actionable, step-by-step journeys. The application includes social features like groups and leaderboards to foster a collaborative and competitive environment, and even uses a vision AI to verify the completion of real-world tasks.
-
-✨ Key Features
-🤖 AI Journey Builder: Users can input a high-level goal (e.g., "run a 5k in 3 months"), and the application uses the Google Gemini API to generate a detailed, week-by-week plan with daily tasks.
-
-📸 AI-Powered Task Verification: For tasks that require physical proof (e.g., "clean your desk"), users can upload a photo. A vision AI model analyzes the image to verify completion, awarding points accordingly.
-
-🏆 Gamification System:
-
-Points: Earn points for daily logins, completing tasks, and group activities.
-
-Ranks: Progress through ranks from "Beginner" to "Legend" as you accumulate points.
-
-Streaks: Maintain a daily login streak to earn bonus points and stay motivated.
-
-🤝 Collaborative Groups: Users can create or join groups to tackle shared targets together. Each group has its own page with a list of members and collaborative goals.
-
-🥇 Leaderboard: A global leaderboard ranks all users by their total points, encouraging friendly competition.
-
-🔒 User Authentication: Secure user registration and login system to manage personal progress.
-
-🎨 Sleek, Modern UI: A responsive and stylish dark-mode interface built with Bootstrap 5 and custom CSS.
-
-🛠️ Technology Stack
-Backend: Python with Flask
-
-Database: SQLAlchemy (configured for SQLite locally and adaptable for PostgreSQL in production)
-
-AI / Machine Learning: Google Gemini API (Gemini 2.5 Flash for text generation and vision)
-
-Authentication: Flask-Login
-
-Frontend: HTML5, Jinja2 Templating
-
-Styling: Bootstrap 5 with custom CSS for a modern, dark-themed look.
-
-Server: Development server via Flask CLI, production-ready for WSGI servers like Gunicorn.
-
-📸 Screenshots
-(You can add screenshots of your application here to make the README more visually appealing.)
-
-
-🚀 How to Run This Project Locally
-To set up and run this project on your own machine, follow these steps:
-
-Clone the Repository
-Use the following commands to download the project and navigate into the folder.
-
-git clone [https://github.com/guneesh0601/LevlUp--taskify-hackathon-project-.git](https://github.com/guneesh0601/LevlUp--taskify-hackathon-project-.git)
-cd LevlUp--taskify-hackathon-project-
-
-Create and Activate a Virtual Environment
-This isolates the project's dependencies from your main system.
-
-# Create the environment
-python -m venv venv
-# Activate it (on Windows)
-venv\Scripts\activate
-
-Install Dependencies
-The requirements.txt file contains all the necessary libraries. This command installs them all at once.
-
-pip install -r requirements.txt
-
-Set Up Your API Key
-
-You will need a Google Gemini API key.
-
-Open the app.py file.
-
-Find the line GEMINI_API_KEY = "AIzaSyCXibdnlNGtYfvJ2oE4bRMz11mzzrwY2-I" and replace the placeholder text with your actual API key inside the quotes.
-
-Run the Application
-This command starts the local development server.
-
-python app.py
-
-The application will now be running at http://127.0.0.1:5000
-
-
-I am also giving the whole app.py code so that it can be used witha local connection incorporating all changes i mentioned above :-
-
-
---- code starts ----
-```python
-# FINAL APP - COMPLETE BACKEND (Safe for GitHub/Deployment)
+# FINAL APP - COMPLETE BACKEND (Prepared for Deployment with DB Fix)
 
 import random
 import os
@@ -99,7 +14,7 @@ from datetime import datetime, date
 import base64
 
 # Configuration 
-# SECURE: Read the API key from an environment variable. The key is now hidden.
+# SECURE: Read the API key from an environment variable on the server
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
 GEMINI_VISION_API_URL = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
@@ -114,26 +29,14 @@ if not os.path.exists(instance_dir):
     os.makedirs(instance_dir)
 
 app.config['SECRET_KEY'] = 'my-super-secret-key-for-this-hackathon-final-ai'
-# This is the local database address.
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(instance_dir,"db.sqlite")}'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER']= UPLOAD_FOLDER
 db = SQLAlchemy(app)
 
-# Login Manager, Models, Helpers etc .
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-group_target_completions = db.Table('group_target_completions',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key= True),
-    db.Column('group_target_id', db.Integer, db.ForeignKey('group_target.id'), primary_key=True)
-)
-
+# All the models (User, Target, Group, etc.) go here...
+# ... (This code is unchanged)
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
@@ -192,7 +95,26 @@ class DailyTask(db.Model):
     target_id = db.Column(db.Integer, db.ForeignKey('target.id'))
     target = db.relationship('Target', backref='daily_task', uselist=False)
 
-#  RANKS WON BY USER - DATA LIST
+# --- THE FIX: Create database tables on startup ---
+with app.app_context():
+    db.create_all()
+# --- END OF FIX ---
+
+# Login Manager, Helpers, and all Routes go here...
+# ... (This code is unchanged)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+group_target_completions = db.Table('group_target_completions',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key= True),
+    db.Column('group_target_id', db.Integer, db.ForeignKey('group_target.id'), primary_key=True)
+)
+
 RANKS = [
     {"name": "Beginner", "points": 0, "badge": "🔰"}, 
     {"name": "Committed", "points": 50, "badge": "🥉"},
@@ -213,7 +135,6 @@ def inject_utilities(): return dict(get_rank=get_rank)
 
 def allowed_file(filename): return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Routes (standard onees)
 @app.route('/')
 def index(): return redirect(url_for('login'))
 
@@ -264,7 +185,6 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-# Main Application Routes 
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -273,7 +193,6 @@ def dashboard():
     next_rank = next((RANKS[i + 1] for i, rank in enumerate(RANKS) if rank == current_rank and i + 1 < len(RANKS)), None)
     return render_template('dashboard.html', journey=active_journey, current_rank=current_rank, next_rank=next_rank)
 
-# AI JOURNEY BUILDER 
 @app.route('/journey_builder')
 @login_required
 def journey_builder():
@@ -353,7 +272,6 @@ def create_journey():
         flash(f'Failed to get a response from the AI. Error: {response.text}', 'danger')
         return redirect(url_for('journey_builder'))
 
-# Bug Fixed Task Toggle
 @app.route('/toggle_task/<int:task_id>', methods=['POST'])
 @login_required
 def toggle_task(task_id):
@@ -368,7 +286,6 @@ def toggle_task(task_id):
             flash('This task has already been completed.', 'info')
     return redirect(url_for('dashboard'))
 
-# AI Image Verification Thing
 @app.route('/verify_target/<int:target_id>')
 @login_required
 def verify_target_page(target_id):
@@ -434,7 +351,6 @@ def upload_verification(target_id):
     flash('File type not allowed.', 'danger')
     return redirect(request.url)
 
-# Group Routes
 @app.route('/groups')
 @login_required
 def groups():
@@ -515,9 +431,12 @@ def leaderboard():
     all_users = User.query.order_by(User.points.desc()).all()
     return render_template('leaderboard.html', users=all_users)
 
-# REMOVED the `if __name__ == "__main__":` block for deployment
 
 
-    
-```
+
+
+
+
+
+
 

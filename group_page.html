@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ group.name }}{% endblock %}
+
+{% block content %}
+<div class="container text-center mb-5">
+    <h1 class="display-4 fw-bold">{{ group.name }}</h1>
+    <p class="lead text-white-50">Work together to complete these targets!</p>
+</div>
+
+<div class="row g-4">
+    <!-- Group Targets Column -->
+    <div class="col-md-8">
+        <div class="card p-4 h-100">
+            <h3 class="mb-4">Group Targets</h3>
+            
+            <!-- Add New Target Form -->
+            <form method="POST" action="{{ url_for('add_group_target', group_id=group.id) }}" class="input-group mb-4">
+                <input type="text" name="target_title" class="form-control" placeholder="Add a new collaborative target..." required>
+                <button class="btn btn-primary" type="submit">Add Target</button>
+            </form>
+
+            <!-- List of Targets -->
+            {% if group.targets %}
+                <ul class="list-group">
+                    {% for target in group.targets %}
+                        <li class="list-group-item bg-transparent border-secondary text-white mb-2 p-3">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ target.title }}</h5>
+                                {% if current_user not in target.completed_by %}
+                                    <a href="{{ url_for('complete_group_target', target_id=target.id) }}" class="btn btn-sm btn-outline-success">Mark as Done</a>
+                                {% else %}
+                                    <span class="badge bg-success rounded-pill align-self-center">You've completed this! ✅</span>
+                                {% endif %}
+                            </div>
+                            <small>
+                                Completed by: 
+                                {% if target.completed_by %}
+                                    {{ target.completed_by|map(attribute='username')|join(', ') }}
+                                {% else %}
+                                    No one yet.
+                                {% endif %}
+                            </small>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-center text-white-50 mt-3">This group has no targets yet. Add the first one!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Members Column -->
+    <div class="col-md-4">
+        <div class="card p-4 h-100">
+            <h3 class="mb-4">Members ({{ group.members|length }})</h3>
+            <div class="list-group">
+                {% for member in group.members %}
+                    <div class="list-group-item bg-transparent border-secondary text-white d-flex justify-content-between align-items-center">
+                        <span>{{ member.username }}</span>
+                        <span class="badge bg-light text-dark rounded-pill">{{ get_rank(member.points).badge }} {{ member.points }} pts</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-5">
+    <a href="{{ url_for('groups') }}" class="btn btn-outline-secondary">&larr; Back to Groups Hub</a>
+</div>
+{% endblock %}
+
